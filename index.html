@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>С Новым 2026 Годом! | Пресс-центр Администрации Тольятти</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Manrope:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* =========================================
+           1. БАЗОВЫЕ НАСТРОЙКИ (ЗИМНЕЕ УТРО)
+           ========================================= */
+        :root {
+            --bg-grad-start: #E3F2FD;
+            --bg-grad-mid: #FFFFFF;
+            --bg-grad-end: #FFF8E1; /* Теплый ванильный низ */
+            
+            --c-text-main: #37474F;
+            --c-text-sec: #607D8B;
+            --c-accent: #0288D1;
+            --c-gold: #FFB300;
+            
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.95);
+            --shadow: 0 15px 40px rgba(0, 60, 100, 0.08);
+            
+            --radius: 28px; /* Еще более мягкие углы */
+        }
+
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background: linear-gradient(180deg, var(--bg-grad-start) 0%, var(--bg-grad-mid) 40%, var(--bg-grad-end) 100%);
+            font-family: 'Manrope', sans-serif;
+            color: var(--c-text-main);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Канвас на весь экран */
+        #snow-canvas, #fireworks-canvas {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        #fireworks-canvas { z-index: 999; }
+
+        main {
+            position: relative;
+            z-index: 10;
+            max-width: 800px; /* Чуть уже для уютности */
+            margin: 0 auto;
+            padding: 1rem;
+            padding-bottom: 6rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* =========================================
+           2. СТИЛИ КАРТОЧЕК (GLASSMORPHISM)
+           ========================================= */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 3rem 2rem;
+            width: 100%;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 1s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .glass-card.visible { opacity: 1; transform: translateY(0); }
+
+        /* Бейдж */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #E1F5FE;
+            color: var(--c-accent);
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255,255,255,0.8);
+        }
+
+        /* =========================================
+           3. ТИПОГРАФИКА
+           ========================================= */
+        h1 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(3.5rem, 10vw, 6rem);
+            line-height: 0.9;
+            color: var(--c-text-main);
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        
+        h1 span {
+            color: var(--c-gold);
+            font-style: italic;
+            display: block;
+            font-size: 0.5em;
+            line-height: 2;
+            color: var(--c-text-sec);
+            font-family: 'Manrope', sans-serif;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+        }
+
+        /* =========================================
+           4. ТАЙМЕР
+           ========================================= */
+        .timer-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.8rem;
+            margin: 2.5rem auto 0;
+            max-width: 450px;
+        }
+        
+        .timer-box {
+            background: rgba(255,255,255,0.6);
+            padding: 0.8rem 0.5rem;
+            border-radius: 18px;
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+        
+        .t-val { font-size: 1.6rem; font-weight: 700; color: var(--c-accent); line-height: 1; }
+        .t-lbl { font-size: 0.65rem; text-transform: uppercase; margin-top: 4px; color: #90A4AE; font-weight: 600; letter-spacing: 0.5px; }
+
+        /* =========================================
+           5. ТЕКСТОВЫЙ БЛОК (MAGIC EFFECT)
+           ========================================= */
+        .magic-text-block {
+            position: relative;
+            padding: 2rem 1rem;
+        }
+
+        /* Декоративная иконка */
+        .magic-icon {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+            display: inline-block;
+            background: linear-gradient(135deg, var(--c-gold), #FFCA28);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: float-icon 4s ease-in-out infinite;
+        }
+
+        .text-content {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.6rem;
+            line-height: 1.5;
+            color: var(--c-text-main);
+            font-style: italic;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Пульсирующая подсветка для блока пожеланий */
+        .wish-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.95), rgba(255, 250, 240, 0.9));
+            border: 1px solid #fff;
+            animation: warm-pulse 5s infinite alternate;
+        }
+
+        @keyframes warm-pulse {
+            0% { box-shadow: 0 15px 40px rgba(255, 179, 0, 0.05); }
+            100% { box-shadow: 0 20px 60px rgba(255, 179, 0, 0.15); }
+        }
+
+        @keyframes float-icon {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(5deg); }
+        }
+
+        /* =========================================
+           6. КНОПКА И ПОДВАЛ
+           ========================================= */
+        .btn-main {
+            background: linear-gradient(135deg, #FFC107 0%, #FF9800 100%);
+            color: #fff;
+            border: none;
+            padding: 1.2rem 3rem;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(255, 160, 0, 0.25);
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+            max-width: 320px;
+            margin-top: 1rem;
+            -webkit-appearance: none;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Блик на кнопке */
+        .btn-main::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer { 100% { left: 100%; } }
+
+        .btn-main:active { transform: scale(0.97); }
+
+        .footer {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(0,0,0,0.05);
+            font-size: 0.9rem;
+            color: var(--c-text-sec);
+        }
+        .footer strong { display: block; font-size: 1.1rem; color: var(--c-text-main); margin-top: 8px; font-weight: 800; }
+
+        /* =========================================
+           7. МОБИЛЬНАЯ АДАПТАЦИЯ
+           ========================================= */
+        @media (max-width: 768px) {
+            .glass-card { padding: 2rem 1.5rem; }
+            h1 { font-size: 4rem; }
+            .text-content { font-size: 1.35rem; }
+            .timer-grid { gap: 0.5rem; }
+            .t-val { font-size: 1.4rem; }
+            main { gap: 1.5rem; padding-bottom: 4rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="snow-canvas"></canvas>
+    <canvas id="fireworks-canvas"></canvas>
+
+    <main>
+        <!-- СЦЕНА 1: ГЛАВНАЯ -->
+        <section class="glass-card visible">
+            <div class="badge">Пресс-центр Администрации</div>
+            <h1><span>С Наступающим</span>2026</h1>
+            
+            <div class="timer-grid" id="countdown">
+                <div class="timer-box"><div class="t-val" id="d">0</div><div class="t-lbl">Дней</div></div>
+                <div class="timer-box"><div class="t-val" id="h">0</div><div class="t-lbl">Часов</div></div>
+                <div class="timer-box"><div class="t-val" id="m">0</div><div class="t-lbl">Минут</div></div>
+                <div class="timer-box"><div class="t-val" id="s">0</div><div class="t-lbl">Сек</div></div>
+            </div>
+        </section>
+
+        <!-- СЦЕНА 2: ПОЖЕЛАНИЕ (Вместо достижений) -->
+        <section class="glass-card wish-card">
+            <div class="magic-text-block">
+                <div class="magic-icon">✨</div>
+                <div class="text-content">
+                    "Новый год — это не просто смена дат в календаре. Это время, когда мы замедляем бег, чтобы услышать главное. 
+                    <br><br>
+                    Пусть 2026 год станет для вас годом добрых вестей, теплых встреч и светлых надежд. Берегите себя, своих близких и наш любимый город."
+                </div>
+            </div>
+        </section>
+
+        <!-- СЦЕНА 3: ФИНАЛ -->
+        <section class="glass-card">
+            <button class="btn-main" id="launch-btn">Запустить салют 🎆</button>
+
+            <div class="footer">
+                С уважением, теплом и надеждой на лучшее,<br>
+                <strong>Пресс-центр Администрации<br>городского округа Тольятти</strong>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            /* =========================================
+               1. ТАЙМЕР
+               ========================================= */
+            const targetDate = new Date('January 1, 2026 00:00:00').getTime();
+            
+            function updateTimer() {
+                const now = new Date().getTime();
+                const diff = targetDate - now;
+
+                if (diff < 0) {
+                    document.getElementById('countdown').innerHTML = '<div style="grid-column: span 4; font-size: 1.5rem; color: var(--c-gold); font-weight: 700; margin-top: 1rem;">С Новым Годом!</div>';
+                    return;
+                }
+
+                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+                document.getElementById('d').innerText = d;
+                document.getElementById('h').innerText = h < 10 ? '0'+h : h;
+                document.getElementById('m').innerText = m < 10 ? '0'+m : m;
+                document.getElementById('s').innerText = s < 10 ? '0'+s : s;
+            }
+            setInterval(updateTimer, 1000);
+            updateTimer();
+
+            /* =========================================
+               2. СНЕГ (Уютный и плавный)
+               ========================================= */
+            const snowCanvas = document.getElementById('snow-canvas');
+            const snowCtx = snowCanvas.getContext('2d');
+            let w, h;
+            const snowflakes = [];
+
+            function resize() {
+                w = snowCanvas.width = window.innerWidth;
+                h = snowCanvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            function initSnow() {
+                const count = window.innerWidth < 768 ? 40 : 80; 
+                for(let i=0; i<count; i++) {
+                    snowflakes.push({
+                        x: Math.random() * w,
+                        y: Math.random() * h,
+                        vy: Math.random() * 0.8 + 0.3, // Медленное падение
+                        size: Math.random() * 2 + 1,
+                        opacity: Math.random() * 0.5 + 0.2
+                    });
+                }
+            }
+            initSnow();
+
+            function drawSnow() {
+                snowCtx.clearRect(0, 0, w, h);
+                snowCtx.fillStyle = '#90A4AE';
+                snowflakes.forEach(f => {
+                    f.y += f.vy;
+                    if(f.y > h) { f.y = -5; f.x = Math.random() * w; }
+                    snowCtx.beginPath();
+                    snowCtx.globalAlpha = f.opacity;
+                    snowCtx.arc(f.x, f.y, f.size, 0, Math.PI*2);
+                    snowCtx.fill();
+                });
+                requestAnimationFrame(drawSnow);
+            }
+            drawSnow();
+
+            /* =========================================
+               3. САЛЮТ (Высокий и яркий)
+               ========================================= */
+            const fwCanvas = document.getElementById('fireworks-canvas');
+            const fwCtx = fwCanvas.getContext('2d');
+            let fireworks = [];
+            let particles = [];
+            const colors = ['#FF0055', '#FFD700', '#00E5FF', '#76FF03', '#FFFFFF'];
+
+            function resizeFw() {
+                fwCanvas.width = window.innerWidth;
+                fwCanvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resizeFw);
+            resizeFw();
+
+            class Particle {
+                constructor(x, y, color) {
+                    this.x = x;
+                    this.y = y;
+                    this.color = color;
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = Math.random() * 5 + 2;
+                    this.vx = Math.cos(angle) * speed;
+                    this.vy = Math.sin(angle) * speed;
+                    this.alpha = 1; 
+                    this.decay = Math.random() * 0.015 + 0.005;
+                    this.gravity = 0.12; 
+                }
+                update() {
+                    this.vx *= 0.95;
+                    this.vy *= 0.95;
+                    this.vy += this.gravity;
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    this.alpha -= this.decay;
+                }
+                draw() {
+                    fwCtx.save();
+                    fwCtx.globalAlpha = this.alpha;
+                    fwCtx.fillStyle = this.color;
+                    fwCtx.beginPath();
+                    fwCtx.arc(this.x, this.y, 2.5, 0, Math.PI * 2);
+                    fwCtx.fill();
+                    fwCtx.restore();
+                }
+            }
+
+            class Firework {
+                constructor(targetX, targetY) {
+                    this.x = fwCanvas.width / 2;
+                    this.y = fwCanvas.height;
+                    this.tx = targetX;
+                    this.ty = targetY;
+                    this.speed = 15;
+                    const angle = Math.atan2(targetY - this.y, targetX - this.x);
+                    this.vx = Math.cos(angle) * this.speed;
+                    this.vy = Math.sin(angle) * this.speed;
+                    this.color = colors[Math.floor(Math.random() * colors.length)];
+                    this.active = true;
+                }
+                update() {
+                    this.x += this.vx;
+                    this.y += this.vy;
+                    if (this.y <= this.ty || (this.vy < 0 && this.y < this.ty)) {
+                        this.explode();
+                        this.active = false;
+                    }
+                }
+                draw() {
+                    fwCtx.beginPath();
+                    fwCtx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+                    fwCtx.fillStyle = this.color;
+                    fwCtx.fill();
+                }
+                explode() {
+                    for(let i=0; i<70; i++) {
+                        particles.push(new Particle(this.x, this.y, this.color));
+                    }
+                    // Вспышка
+                    fwCtx.save();
+                    fwCtx.globalCompositeOperation = 'lighten';
+                    fwCtx.fillStyle = 'rgba(255,255,255,0.4)';
+                    fwCtx.fillRect(0,0,fwCanvas.width, fwCanvas.height);
+                    fwCtx.restore();
+                }
+            }
+
+            function animateFireworks() {
+                fwCtx.clearRect(0, 0, fwCanvas.width, fwCanvas.height);
+                fireworks.forEach((fw, i) => {
+                    fw.update();
+                    fw.draw();
+                    if(!fw.active) fireworks.splice(i, 1);
+                });
+                particles.forEach((p, i) => {
+                    p.update();
+                    p.draw();
+                    if(p.alpha <= 0) particles.splice(i, 1);
+                });
+                requestAnimationFrame(animateFireworks);
+            }
+            animateFireworks();
+
+            function launch(x, y) {
+                fireworks.push(new Firework(x, y));
+            }
+
+            document.getElementById('launch-btn').addEventListener('click', (e) => {
+                for(let i=0; i<5; i++) {
+                    setTimeout(() => {
+                        launch(
+                            Math.random() * window.innerWidth * 0.9 + window.innerWidth * 0.05,
+                            window.innerHeight * (0.1 + Math.random() * 0.3)
+                        );
+                    }, i * 300);
+                }
+            });
+
+            // Автозапуск
+            setInterval(() => {
+                if(Math.random() > 0.8) {
+                    launch(
+                        Math.random() * window.innerWidth,
+                        window.innerHeight * (0.15 + Math.random() * 0.25)
+                    );
+                }
+            }, 3000);
+
+            /* =========================================
+               4. SCROLL ANIMATION
+               ========================================= */
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if(entry.isIntersecting) entry.target.classList.add('visible');
+                });
+            }, { threshold: 0.15 });
+
+            document.querySelectorAll('.glass-card').forEach(c => observer.observe(c));
+        });
+    </script>
+</body>
+</html>
